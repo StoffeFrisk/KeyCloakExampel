@@ -24,6 +24,21 @@ def _get_jwks():
     _JWKS_CACHE["expires_at"] = now + 600
     return jwks
 
+class TokenUser:
+
+    def __init__(self, token: dict):
+        self.token = token
+
+    @property
+    def is_authenticated(self) -> bool:
+        return True
+
+    def get(self, key, default=None):
+        return self.token.get(key, default)
+
+    def __repr__(self):
+        return f"<TokenUser preferred_username={self.token.get('preferred_username')!r}>"
+
 
 class KeycloakAuthentication(BaseAuthentication):
     def authenticate(self, request):
@@ -38,25 +53,23 @@ class KeycloakAuthentication(BaseAuthentication):
         token = parts[1]
 
         issuer = getattr(settings, "KEYCLOAK_ISSUER", None)
-        audience = getattr(settings, "KEYCLOAK_AUDIENCE", None)
-        if not issuer or not audience:
-            raise AuthenticationFailed("Server misconfigured: KEYCLOAK_ISSUER/AUDIENCE missing")
+        if not issuer:
+            raise AuthenticationFailed("Server misconfigured: KEYCLOAK_ISSUER missing")
 
         try:
             jwks = _get_jwks()
-
             decoded_token = jwt.decode(
                 token,
                 jwks,
-                audience=audience,
                 issuer=issuer,
                 options={
                     "verify_signature": True,
-                    "verify_aud": True,
+                    "verify_aud": False,
                     "verify_iss": True,
                     "verify_exp": True,
                 },
             )
+
         except JWTError:
             raise AuthenticationFailed("Invalid or expired token")
         except AuthenticationFailed:
@@ -64,4 +77,4 @@ class KeycloakAuthentication(BaseAuthentication):
         except Exception:
             raise AuthenticationFailed("Could not validate token")
 
-        return (decoded_token, None)
+        return (TokenUser(decoded_token), decoded_token)

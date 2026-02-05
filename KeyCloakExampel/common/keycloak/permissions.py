@@ -1,10 +1,8 @@
-
 from django.conf import settings
 from rest_framework.permissions import BasePermission
 
 
 def _get_roles(token: dict) -> list[str]:
-
     role_source = getattr(settings, "KEYCLOAK_ROLE_SOURCE", "realm")
 
     if role_source == "client":
@@ -25,7 +23,12 @@ class HasRole(BasePermission):
     message = "Du saknar behörighet för denna endpoint."
 
     def has_permission(self, request, view):
-        token = request.user
+        token = getattr(request, "auth", None)
+
+        # fallback - Gatekeeping
+        if token is None and hasattr(request.user, "token"):
+            token = request.user.token
+
         if not isinstance(token, dict):
             return False
 

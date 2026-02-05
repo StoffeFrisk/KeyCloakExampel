@@ -60,12 +60,10 @@ DATABASES = {
 
 STATIC_URL = "static/"
 
-KEYCLOAK_ISSUER = "http://localhost:8080/realms/demo"
-KEYCLOAK_AUDIENCE = "api-client"
-KEYCLOAK_JWKS_URL = "http://localhost:8080/realms/demo/protocol/openid-connect/certs"
-
-KEYCLOAK_ROLE_SOURCE = "realm"
-
+KEYCLOAK_ISSUER = "http://127.0.0.1:8080/realms/SpacePairTestRealm"
+KEYCLOAK_JWKS_URL = "http://127.0.0.1:8080/realms/SpacePairTestRealm/protocol/openid-connect/certs"
+KEYCLOAK_CLIENT_ID = "api-client"
+KEYCLOAK_ROLE_SOURCE = "client"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
